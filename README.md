@@ -6,17 +6,42 @@ Lets an agent in a T3 Code thread hand work to an OpenBot agent and get the
 answer back in the same thread, and lets an OpenBot agent delegate coding work to T3 Code. It works
 with both apps as shipped.
 
-```mermaid
-flowchart LR
-  T3[T3 Code thread] -->|stdio MCP| C[This connector]
-  C -->|Local scripts API on loopback| OB[OpenBot agent]
-  OB -->|T3 Code's own MCP endpoint| T3
-```
+<p align="center">
+  <img src="docs/assets/thread.svg" alt="A T3 Code thread: the user asks for an OpenBot agent, the T3 agent queues the task, and the tagged report arrives as a new message in the same thread." width="100%">
+</p>
+
+## How it works
+
+<p align="center">
+  <img src="docs/assets/flow.svg" alt="A T3 Code thread sends a task through the connector to an OpenBot agent over the Local scripts API. The agent posts its report back through T3 Code's own MCP endpoint." width="100%">
+</p>
 
 The connector is a small stdio MCP server that the Codex or Claude provider inside T3 Code starts on
 demand. It keeps no state, opens no port, and holds no credential of its own. OpenBot is an MCP
 client but not an MCP server, so this adapter is T3 Code's way in. The way back is T3 Code's
 built-in MCP endpoint, which OpenBot connects to directly.
+
+## Why not plain MCP in both directions?
+
+One direction already is plain MCP: OpenBot connects straight to T3 Code's endpoint. The other
+direction cannot be, because OpenBot does not serve MCP. Its way in is a local HTTP API whose port
+and token change on every start.
+
+| | Plain MCP only | With this connector |
+| --- | --- | --- |
+| OpenBot agent calls T3 Code | ✅ T3 Code's built-in endpoint | ✅ The same endpoint, untouched |
+| T3 Code agent calls OpenBot | ❌ OpenBot has no MCP server | ✅ Six tools over the Local scripts API |
+| OpenBot's port and token after a restart | Re-entered by hand | Read fresh on every call |
+| Getting the answer back | Nothing links a reply to a request | Tagged report into the thread that asked |
+| Knowing which thread asked | You pass the thread ID yourself | Taken from the T3 Code session |
+| Retrying a send safely | Duplicates the task | Stable key, deduplicated by OpenBot for 24 hours |
+| Agent waiting for a reply that never comes | Common | The task states the report is one-way |
+| Failed tasks | Silent | Reported with `outcome: failed` and the reason |
+| Two agents answering each other in a loop | Possible | Results are sent with reporting off |
+| Extra processes, ports, or secrets | None | None |
+
+The connector adds two things: a translation from OpenBot's HTTP API to MCP tools, and the
+convention that makes a one-way send behave like a round trip.
 
 ## Requirements
 

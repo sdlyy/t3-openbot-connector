@@ -4,12 +4,7 @@ The connector is a thin, stateless adapter between an MCP client and OpenBot's L
 OpenBot owns agents, queues, conversation history, routines, and scheduling. T3 owns its threads.
 The connector never opens either application's database and never holds a credential of its own.
 
-```mermaid
-flowchart LR
-  T3[T3 provider session] -->|stdio MCP| Bridge[Connector]
-  Bridge -->|Loopback API + rotating local token| Host[OpenBot automation]
-  OB[OpenBot agent] -->|HTTP MCP + OAuth| Threads[T3 native MCP]
-```
+![The round trip between T3 Code, the connector, and OpenBot](assets/flow.svg)
 
 ## Locating OpenBot
 
