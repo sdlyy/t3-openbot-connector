@@ -1,0 +1,40 @@
+{
+  "name": "t3-openbot-connector",
+  "version": "0.4.0",
+  "description": "Stdio MCP server that lets T3 Code agents hand work to OpenBot agents and get the answer back in the same thread.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "bin": {
+    "t3-openbot": "dist/src/cli.js"
+  },
+  "scripts": {
+    "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc",
+    "check": "tsc --noEmit",
+    "start": "node dist/src/cli.js",
+    "doctor": "node dist/src/cli.js doctor",
+    "test": "npm run build && node --test --test-concurrency=1 dist/test/*.test.js",
+    "register": "node dist/src/cli.js install"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sdlyy/t3-openbot-connector.git"
+  },
+  "keywords": [
+    "mcp",
+    "t3-code",
+    "openbot",
+    "agents"
+  ]
+}
